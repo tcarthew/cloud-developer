@@ -16,15 +16,58 @@ router.get('/', async (req: Request, res: Response) => {
     res.send(items);
 });
 
-//@TODO
-//Add an endpoint to GET a specific resource by Primary Key
+router.get('/:id', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).send({ message: 'id is required' });
+    }
+
+    const item = await FeedItem.findByPk(id);
+
+    if (!item) {
+        return res.status(500).send({ message: `Invalid id specified, not item for ${id}` });
+    }
+
+    return res.status(200).send(item);
+});
 
 // update a specific resource
 router.patch('/:id', 
     requireAuth, 
     async (req: Request, res: Response) => {
-        //@TODO try it yourself
-        res.send(500).send("not implemented")
+        const { id } = req.params;
+        const { caption, url } = req.body;
+        let message = '';
+
+        if (!id) {
+            message = 'id is required';
+        }
+
+        if (!caption && !url) {
+            message = 'url or caption must be specified'
+        }
+
+        if (message) {
+            return res.status(400).send({ message });
+        }
+    
+        const item = await FeedItem.findByPk(id);
+
+        if (!item) {
+            return res.status(500).send({ message: `Invalid id specified, not item for ${id}` });
+        }
+
+        try {
+            const result = await item.update({
+                caption,
+                url
+            });
+            res.status(200).send(result);
+        } catch(err) {
+            res.status(500).send({ message: err.message });
+        }
+        
 });
 
 
@@ -63,7 +106,7 @@ router.post('/',
 
     const saved_item = await item.save();
 
-    saved_item.url = AWS.getGetSignedUrl(saved_item.url);
+    saved_item.url = AWS.getPutSignedUrl(saved_item.url);
     res.status(201).send(saved_item);
 });
 
