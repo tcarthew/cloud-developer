@@ -1,34 +1,53 @@
 import express, { json } from 'express';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
+const URL_REGEX = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
+
 (async () => {
   const app = express();
   const port = process.env.PORT || 8082;
   
   app.use(json());
 
-  // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
-  // GET /filteredimage?image_url={{URL}}
-  // endpoint to filter an image from a public url.
-  // IT SHOULD
-  //    1
-  //    1. validate the image_url query
-  //    2. call filterImageFromURL(image_url) to filter the image
-  //    3. send the resulting file in the response
-  //    4. deletes any files on the server on finish of the response
-  // QUERY PARAMATERS
-  //    image_url: URL of a publicly accessible image
-  // RETURNS
-  //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
-
-  /**************************************************************************** */
-
-  //! END @TODO1
-  
-  // Root Endpoint - Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
-    res.send("try GET /filteredimage?image_url={{}}")
+    res.send("try GET /filteredimage?image_url={{valid url to jpg image}}")
   } );
+
+  app.get('/filteredimage', async (req, res) => {
+    const url = req.query.image_url;
+
+    if (!url) {
+      return res
+        .status(400)
+        .send({ message: 'image_url query parameter is required' });
+    }
+
+    if (!URL_REGEX.test(url)) {
+      return res
+        .status(400)
+        .send({ message: 'image_url is should be a valid url' });
+    }
+
+    let result: string;
+    try {
+      console.log('filtering : ', url);
+      result = await filterImageFromURL(url);
+
+      return res
+        .status(200)
+        .sendFile(result, (err) => {
+          if (err) {
+            return res.status(500).send({ message: err.message  });
+          }
+
+          if (result) {
+            deleteLocalFiles([result]);
+          }
+        });
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  });
   
 
   // Start the Server
