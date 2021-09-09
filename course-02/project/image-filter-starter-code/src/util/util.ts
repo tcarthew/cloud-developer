@@ -1,6 +1,10 @@
 import fs from 'fs';
 import Jimp = require('jimp');
 
+function isError(err: unknown): err is Error {
+    return typeof err === 'object' && err.hasOwnProperty('message');
+}
+
 // filterImageFromURL
 // helper function to download, filter, and save the filtered image locally
 // returns the absolute path to the local image
@@ -23,7 +27,8 @@ export const filterImageFromURL = async (inputURL: string): Promise<string> => {
 
         return filterImageOutput;
     } catch (err) {
-        console.log(`Error filtering image ${inputURL} : ${err.message}`);
+        const message = isError(err) ? err.message : 'Unknown';
+        console.log(`Error filtering image ${inputURL} : ${message}`);
         throw err;
     }
 }
