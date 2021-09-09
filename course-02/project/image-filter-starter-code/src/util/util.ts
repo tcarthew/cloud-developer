@@ -1,7 +1,7 @@
 import fs from 'fs';
 import Jimp = require('jimp');
 
-function isError(err: unknown): err is Error {
+export const isError = (err: unknown): err is Error => {
     return typeof err === 'object' && err.hasOwnProperty('message');
 }
 
