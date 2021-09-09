@@ -26,13 +26,13 @@
     "@types/jsonwebtoken": "^8.3.2",
     "ts-node-dev": "^1.0.0-pre.40",
     "tslint": "^5.18.0",
-    "typescript": "^3.5.3",
-    "jsonwebtoken": "^8.5.1",
-    "dotenv": "^10.0.0"
+    "typescript": "^3.5.3"
   },
   "dependencies": {
     "express": "^4.17.1",
     "jimp": "^0.16.1",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "jsonwebtoken": "^8.5.1",
+    "dotenv": "^10.0.0"
   }
 }
