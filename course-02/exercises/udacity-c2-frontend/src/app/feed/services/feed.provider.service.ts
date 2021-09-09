@@ -25,15 +25,4 @@ export class FeedProviderService {
     this.currentFeed$.next(feed);
     return res;
   }
-
 }
-
-// async getFeed() {
-//   const url = `${API_HOST}/feed`;
-
-//   const req = this.http.get(url, this.httpOptions).pipe(
-//     map(this.extractData));
-//     // catchError(this.handleError));
-//   const resp = <any> (await req.toPromise());
-//   return resp.rows;
-// }
