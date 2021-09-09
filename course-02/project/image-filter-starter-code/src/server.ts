@@ -1,5 +1,8 @@
+require('dotenv').config();
+
 import express, { json } from 'express';
 import { filterImageFromURL, deleteLocalFiles, isError } from './util/util';
+import { requireAuth } from './middleware';
 
 const URL_REGEX = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
 
@@ -13,7 +16,7 @@ const URL_REGEX = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,
     res.send("try GET /filteredimage?image_url={{valid url to jpg image}}")
   } );
 
-  app.get('/filteredimage', async (req, res) => {
+  app.get('/filteredimage', requireAuth, async (req, res) => {
     const url = req.query.image_url;
 
     if (!url) {
