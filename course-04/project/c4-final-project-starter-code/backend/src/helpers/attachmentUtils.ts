@@ -1,6 +1,3 @@
-import * as AWS from 'aws-sdk'
-import * as AWSXRay from 'aws-xray-sdk'
-
-const XAWS = AWSXRay.captureAWS(AWS)
+import { createS3 } from '../helpers/factories';
 
 // TODO: Implement the fileStogare logic

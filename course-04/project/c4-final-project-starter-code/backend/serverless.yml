@@ -1,5 +1,4 @@
-# TODO: Change the name of the org 
-org: sudkul
+org: tcart
 app: serverless-todo-app
 service: serverless-todo-app
 
@@ -10,7 +9,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs14.x
   lambdaHashingVersion: '20201221'
 
   stage: ${opt:stage, 'dev'}
