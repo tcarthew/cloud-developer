@@ -2,9 +2,21 @@ import { createLogger } from '../utils/logger';
 import { TodoItem } from '../models/TodoItem';
 import { TodoUpdate } from '../models/TodoUpdate';
 import { createDocumentClient } from '../helpers/factories';
+import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
 const logger = createLogger('TodosAccess');
 const { TODOS_TABLE: TableName, TODOS_CREATED_AT_INDEX: IndexName } = process.env;
+
+function transform(value: AttributeMap): TodoItem {
+    const keys = Object.keys(value);
+    const result = {};
+
+    keys.forEach(k => {
+        result[k] = value[k];
+    });
+
+    return result as TodoItem;
+}
 
 export const getAll = async (userId: string): Promise<TodoItem[]> => {
     logger.info('getAll');
@@ -25,11 +37,31 @@ export const getAll = async (userId: string): Promise<TodoItem[]> => {
     }
 }
 
-export const update = async (id: string, userId: string, todo: TodoUpdate): Promise<TodoItem> => {
-    return null;
-    // const db = createDocumentClient();
+export const update = async (id: string, userId: string, todoUpdate: TodoUpdate): Promise<TodoItem> => {
+    logger.info(`update todo ${id}; user: ${userId}, todo: ${JSON.stringify(todoUpdate)}`);
+    const db = createDocumentClient();
     try {
-        logger.info(`id: ${id};userId:${userId}todo:${JSON.stringify(todo)}`);
+        const result = await db.update({
+            TableName,
+            Key: {
+                'todoId': id,
+                'userId': userId
+            },
+            UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
+            ExpressionAttributeNames: {
+                '#name': 'name'
+            },
+            ExpressionAttributeValues: {
+                ':name': todoUpdate.name,
+                ':dueDate': todoUpdate.dueDate,
+                ':done': todoUpdate.done
+            },
+            ReturnValues: 'ALL_NEW'
+        }).promise();
+
+        logger.info('### RESULT: ', result.Attributes);
+
+        return transform(result.Attributes);
     } catch (err) {
         logger.error(err.message);
         throw err;

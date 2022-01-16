@@ -21,7 +21,7 @@ export const handler = middy(
 
         return {
             statusCode: 200,
-            body: JSON.stringify({ data: result })
+            body: JSON.stringify({ todo: result })
         }
     } catch (err) {
         logger.error(err.message);
