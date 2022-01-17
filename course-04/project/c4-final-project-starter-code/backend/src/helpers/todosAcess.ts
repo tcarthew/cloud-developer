@@ -1,6 +1,5 @@
 import { createLogger } from '../utils/logger';
-import { TodoItem } from '../models/TodoItem';
-import { TodoUpdate } from '../models/TodoUpdate';
+import { TodoItem, TodoUpdate } from '../models';
 import { createDocumentClient } from '../helpers/factories';
 import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
@@ -31,6 +30,22 @@ export const getAll = async (userId: string): Promise<TodoItem[]> => {
         }).promise();
 
         return result.Items.map(i => i as TodoItem);
+    } catch (err) {
+        logger.error(err.message);
+        throw err;
+    }
+}
+
+export const create = async (newTodo: TodoItem): Promise<TodoItem> => {
+    logger.info('create todo: ', JSON.stringify(newTodo));
+    const db = createDocumentClient();
+    try {
+        await db.put({
+            TableName,
+            Item: newTodo
+        }).promise();
+
+        return newTodo;
     } catch (err) {
         logger.error(err.message);
         throw err;

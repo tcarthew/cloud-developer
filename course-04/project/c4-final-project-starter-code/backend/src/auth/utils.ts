@@ -28,10 +28,10 @@ async function getJwksSigningKey(kid: string) {
             .map(key => ({
                 kid: key.kid,
                 nbf: key.nbf,
-                publicKey: certToPEM(key.x5c)
+                publicKey: certToPEM(key.x5c[0])
             }))
             .find(key => key.kid === kid);
-        
+
         if (!signingKey) {
             throw Error('Unable to find a matching signing key');
         }
@@ -78,7 +78,7 @@ export const verifyToken = async (authHeader: string): Promise<JwtPayload> => {
     try {
         const signingKey = await getJwksSigningKey(header.kid);
 
-        return verify(token, signingKey, { algorithms: ['RS256'] }) as JwtPayload;
+        return verify(token, signingKey.publicKey, { algorithms: ['RS256'] }) as JwtPayload;
     } catch (err) {
         logger.error('Verify token failed: ', err.message);
         throw err;

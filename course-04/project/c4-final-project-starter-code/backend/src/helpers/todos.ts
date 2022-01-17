@@ -1,11 +1,9 @@
-import { getAll, update } from './todosAcess'
+import { create, getAll, update } from './todosAcess'
 // import { AttachmentUtils } from './attachmentUtils';
-import { TodoItem } from '../models/TodoItem'
-// import { CreateTodoRequest } from '../requests/CreateTodoRequest'
-import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
+import { TodoItem } from '../models'
+import { CreateTodoRequest, UpdateTodoRequest } from '../requests'
 import { createLogger } from '../utils/logger'
-// import { createLogger } from '../utils/logger'
-// import { v4 as uuid } from 'uuid'
+import { v4 as uuid } from 'uuid'
 // import * as createError from 'http-errors'
 const logger = createLogger('Todos');
 
@@ -14,6 +12,24 @@ export const getTodosForUser = async (userId: string): Promise<TodoItem[]> => {
     try {
         return getAll(userId);    
     } catch(err) {
+        logger.error(err.message);
+        throw err;
+    }
+}
+
+export const createTodo = async (userId: string, todoRequest: CreateTodoRequest): Promise<TodoItem> => {
+    logger.info('createTodo');
+    try {
+        const todoItem: TodoItem = {
+            todoId: uuid(),
+            userId,
+            done: false,
+            createdAt: new Date().toUTCString(),
+            ...todoRequest
+        }
+
+        return create(todoItem);
+    } catch (err) {
         logger.error(err.message);
         throw err;
     }
