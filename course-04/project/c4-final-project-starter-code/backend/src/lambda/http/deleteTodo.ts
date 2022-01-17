@@ -1,25 +1,39 @@
-// import 'source-map-support/register'
+import 'source-map-support/register'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import * as middy from 'middy'
+import { cors, httpErrorHandler } from 'middy/middlewares'
+import { deleteTodo } from '../../helpers/todos'
+import { createLogger } from '../../utils/logger'
+import { parseUserId } from '../../auth/utils'
 
-// import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-// import * as middy from 'middy'
-// import { cors, httpErrorHandler } from 'middy/middlewares'
+const logger = createLogger('deleteTodo.handler');
 
-// import { deleteTodo } from '../../businessLogic/todos'
-// import { getUserId } from '../utils'
+export const handler = middy(
+    async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+        try {
+            const { todoId } = event.pathParameters;
+            const userId = parseUserId(event.headers.Authorization);
 
-// export const handler = middy(
-//   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-//     const todoId = event.pathParameters.todoId
-//     // TODO: Remove a TODO item by id
-    
-//     return undefined
-//   }
-// )
+            await deleteTodo(todoId, userId);
 
-// handler
-//   .use(httpErrorHandler())
-//   .use(
-//     cors({
-//       credentials: true
-//     })
-//   )
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ message: `Todo ${todoId} deleted.` })
+            }
+        } catch (err) {
+            logger.error(err.message);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ message: err.message })
+            }
+        }
+    }
+)
+
+handler
+    .use(httpErrorHandler())
+    .use(
+        cors({
+            credentials: true
+        })
+    )

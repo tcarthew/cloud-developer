@@ -1,10 +1,11 @@
-import { create, getAll, update } from './todosAcess'
+import { create, getAll, remove, update } from './todosAcess'
 // import { AttachmentUtils } from './attachmentUtils';
 import { TodoItem } from '../models'
 import { CreateTodoRequest, UpdateTodoRequest } from '../requests'
 import { createLogger } from '../utils/logger'
 import { v4 as uuid } from 'uuid'
 // import * as createError from 'http-errors'
+
 const logger = createLogger('Todos');
 
 export const getTodosForUser = async (userId: string): Promise<TodoItem[]> => {
@@ -39,6 +40,16 @@ export const updateTodo = async (id: string, userId: string, todoRequest: Update
     logger.info('updateTodo');
     try {
         return update(id, userId, todoRequest);
+    } catch (err) {
+        logger.error(err.message);
+        throw err;
+    }
+}
+
+export const deleteTodo = async (id: string, userId: string): Promise<void> => {
+    logger.info('deleteTodo');
+    try {
+        await remove(id, userId);
     } catch (err) {
         logger.error(err.message);
         throw err;

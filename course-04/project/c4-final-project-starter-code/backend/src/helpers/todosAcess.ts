@@ -74,11 +74,27 @@ export const update = async (id: string, userId: string, todoUpdate: TodoUpdate)
             ReturnValues: 'ALL_NEW'
         }).promise();
 
-        logger.info('### RESULT: ', result.Attributes);
-
         return transform(result.Attributes);
     } catch (err) {
         logger.error(err.message);
         throw err;
     }
+}
+
+export const remove = async (id: string, userId: string): Promise<void> => {
+    logger.info(`delete todo ${id}; user: ${userId}`);
+    const db = createDocumentClient();
+    try {
+        await db.delete({
+            TableName,
+            Key: {
+                'todoId': id,
+                'userId': userId
+            }
+        }).promise();
+    } catch(err) {
+        logger.error(err.message);
+        throw err;
+    }
+
 }
