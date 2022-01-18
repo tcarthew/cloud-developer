@@ -7,4 +7,4 @@ const XAWS = AWSXRay.captureAWS(AWS)
 
 export const createDocumentClient = (): DocumentClient => new XAWS.DynamoDB.DocumentClient();
 
-export const createS3 = (): S3 => new XAWS.S3.S3({ signatureVersion: 'v4' });
+export const createS3 = (): S3 => new XAWS.S3({ signatureVersion: 'v4' });

@@ -6,7 +6,11 @@ import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 const logger = createLogger('TodosAccess');
 const { TODOS_TABLE: TableName, TODOS_CREATED_AT_INDEX: IndexName } = process.env;
 
-function transform(value: AttributeMap): TodoItem {
+function transform(value?: AttributeMap): TodoItem {
+    if (!value) {
+        return null;
+    }
+
     const keys = Object.keys(value);
     const result = {};
 
@@ -75,6 +79,28 @@ export const update = async (id: string, userId: string, todoUpdate: TodoUpdate)
         }).promise();
 
         return transform(result.Attributes);
+    } catch (err) {
+        logger.error(err.message);
+        throw err;
+    }
+}
+
+export const updateAttachementUrl = async (id: string, userId: string, attachmentUrl: string): Promise<void> => {
+    logger.info(`update todo ${id}; user: ${userId}, url: ${attachmentUrl}`);
+    const db = createDocumentClient();
+    try {
+        await db.update({
+            TableName,
+            Key: {
+                'todoId': id,
+                'userId': userId
+            },
+            UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+            ExpressionAttributeValues: {
+                ':attachmentUrl': attachmentUrl,
+            },
+            ReturnValues: 'NONE'
+        }).promise();
     } catch (err) {
         logger.error(err.message);
         throw err;
