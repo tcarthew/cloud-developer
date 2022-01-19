@@ -1,5 +1,5 @@
 import { createLogger } from '../utils/logger';
-import { TodoItem, TodoUpdate } from '../models';
+import { TodoItem, TodoItemKey, TodoUpdate } from '../models';
 import { createDocumentClient } from '../helpers/factories';
 import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
@@ -21,7 +21,7 @@ function transform(value?: AttributeMap): TodoItem {
     return result as TodoItem;
 }
 
-export const getAll = async (userId: string): Promise<TodoItem[]> => {
+export const getAll = async (userId: string, limit: number, lastKey: TodoItemKey): Promise<[TodoItem[], TodoItemKey]> => {
     logger.info('getAll');
     const db = createDocumentClient();
     try {
@@ -29,11 +29,12 @@ export const getAll = async (userId: string): Promise<TodoItem[]> => {
             TableName,
             IndexName,
             KeyConditionExpression: 'userId = :userId',
-            ExpressionAttributeValues: { ':userId' : userId }
-
+            ExpressionAttributeValues: { ':userId' : userId },
+            Limit: limit,
+            ExclusiveStartKey: lastKey
         }).promise();
 
-        return result.Items.map(i => i as TodoItem);
+        return [result.Items.map(i => i as TodoItem), result.LastEvaluatedKey];
     } catch (err) {
         logger.error(err.message);
         throw err;

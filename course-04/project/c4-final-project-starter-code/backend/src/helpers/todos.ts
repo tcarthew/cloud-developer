@@ -1,18 +1,17 @@
 import { create, getAll, remove, update, updateAttachementUrl } from './todosAcess'
 import { getSignedAttachmentUrl } from './attachmentUtils';
-import { TodoItem } from '../models'
+import { TodoItem, TodoItemKey } from '../models'
 import { CreateTodoRequest, UpdateTodoRequest } from '../requests'
 import { createLogger } from '../utils/logger'
 import { v4 as uuid } from 'uuid'
-// import * as createError from 'http-errors'
 
 const logger = createLogger('Todos');
 const { ATTACHMENT_S3_BUCKET, SIGNED_URL_EXPIRATION } = process.env;
 
-export const getTodosForUser = async (userId: string): Promise<TodoItem[]> => {
+export const getTodosForUser = async (userId: string, limit: number, lastKey: TodoItemKey): Promise<[TodoItem[], TodoItemKey]> => {
     logger.info('getTodosForUser');
     try {
-        return getAll(userId);    
+        return getAll(userId, limit, lastKey);    
     } catch(err) {
         logger.error(err.message);
         throw err;
