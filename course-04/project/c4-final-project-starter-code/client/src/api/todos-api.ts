@@ -1,13 +1,12 @@
+import Axios from 'axios'
 import { apiEndpoint } from '../config'
 import { Todo } from '../types/Todo';
 import { CreateTodoRequest } from '../types/CreateTodoRequest';
-import Axios from 'axios'
 import { UpdateTodoRequest } from '../types/UpdateTodoRequest';
 
-export async function getTodos(idToken: string): Promise<Todo[]> {
-  console.log('Fetching todos')
-
-  const response = await Axios.get(`${apiEndpoint}/todos`, {
+export async function getTodos(idToken: string, order: string = 'asc'): Promise<Todo[]> {
+  const sort = 'dueDate';
+  const response = await Axios.get(`${apiEndpoint}/todos?sort=${sort}&order=${order}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
