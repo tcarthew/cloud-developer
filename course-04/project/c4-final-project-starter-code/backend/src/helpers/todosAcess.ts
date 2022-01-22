@@ -1,10 +1,14 @@
 import { createLogger } from '../utils/logger';
-import { TodoItem, TodoItemKey, TodoUpdate } from '../models';
+import { QueryParams, TodoItem, TodoItemKey, TodoUpdate } from '../models';
 import { createDocumentClient } from '../helpers/factories';
 import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
 const logger = createLogger('TodosAccess');
-const { TODOS_TABLE: TableName, TODOS_CREATED_AT_INDEX: IndexName } = process.env;
+const { 
+    TODOS_TABLE: TableName,
+    TODOS_CREATED_AT_INDEX: CreatedAtIndexName,
+    TODOS_DUEDATE_INDEX: DueDateIndexName
+} = process.env;
 
 function transform(value?: AttributeMap): TodoItem {
     if (!value) {
@@ -21,17 +25,19 @@ function transform(value?: AttributeMap): TodoItem {
     return result as TodoItem;
 }
 
-export const getAll = async (userId: string, limit: number, lastKey: TodoItemKey): Promise<[TodoItem[], TodoItemKey]> => {
+export const getAll = async (userId: string, params: QueryParams): Promise<[TodoItem[], TodoItemKey]> => {
     logger.info('getAll');
     const db = createDocumentClient();
     try {
+        
         const result = await db.query({ 
             TableName,
-            IndexName,
+            IndexName: params.sort.toLowerCase() === 'duedate' ? DueDateIndexName : CreatedAtIndexName,
             KeyConditionExpression: 'userId = :userId',
             ExpressionAttributeValues: { ':userId' : userId },
-            Limit: limit,
-            ExclusiveStartKey: lastKey
+            Limit: params.limit,
+            ExclusiveStartKey: params.lastKey,
+            ScanIndexForward: params.order.toLowerCase() === 'asc'
         }).promise();
 
         return [result.Items.map(i => i as TodoItem), result.LastEvaluatedKey];

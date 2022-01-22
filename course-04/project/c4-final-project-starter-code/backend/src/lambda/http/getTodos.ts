@@ -25,13 +25,13 @@ export const handler = middy(
         logger.info('getTodos.handler: ', event);
 
         const userId = parseUserId(event.headers.Authorization);
-        const limit = event.queryStringParameters?.limit || '999';
-        const lastKey = decodeLastKey(event.queryStringParameters?.lastKey);
-
-        logger.info(`limit: ${limit}`);
-        logger.info(`lastKey: ${JSON.stringify(lastKey)}`);
-
-        const [todos, lastEvaluatedKey] = await getTodosForUser(userId, +limit, lastKey);
+        const queryParams = {
+            limit: +(event.queryStringParameters?.limit || '999'),
+            lastKey: decodeLastKey(event.queryStringParameters?.lastKey),
+            sort: event.queryStringParameters?.sort || 'createdAt',
+            order: event.queryStringParameters?.order || 'asc'
+        };
+        const [todos, lastEvaluatedKey] = await getTodosForUser(userId, queryParams);
 
         return {
             statusCode: 200,
