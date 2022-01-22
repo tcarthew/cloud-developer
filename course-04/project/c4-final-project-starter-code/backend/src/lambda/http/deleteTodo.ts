@@ -10,30 +10,18 @@ const logger = createLogger('deleteTodo.handler');
 
 export const handler = middy(
     async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-        try {
-            const { todoId } = event.pathParameters;
-            const userId = parseUserId(event.headers.Authorization);
+        const { todoId } = event.pathParameters;
+        const userId = parseUserId(event.headers.Authorization);
 
-            await deleteTodo(todoId, userId);
+        await deleteTodo(todoId, userId);
 
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ message: `Todo ${todoId} deleted.` })
-            }
-        } catch (err) {
-            logger.error(err.message);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ message: err.message })
-            }
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ message: `Todo ${todoId} deleted.` })
         }
     }
-)
+);
 
 handler
-    .use(httpErrorHandler())
-    .use(
-        cors({
-            credentials: true
-        })
-    )
+    .use(cors({ credentials: true }))
+    .use(httpErrorHandler({ logger }));

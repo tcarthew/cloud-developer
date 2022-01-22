@@ -12,8 +12,8 @@ import { parseUserId } from '../../auth/utils'
 const logger = createLogger('updateTodo.handler');
 
 export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    try {
+    async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
         const { todoId } = event.pathParameters;
         const userId = parseUserId(event.headers.Authorization);
         const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
@@ -23,19 +23,8 @@ export const handler = middy(
             statusCode: 200,
             body: JSON.stringify({ todo: result })
         }
-    } catch (err) {
-        logger.error(err.message);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: err.message })
-        }
-    }
-});
+    });
 
 handler
-  .use(httpErrorHandler())
-  .use(
-    cors({
-      credentials: true
-    })
-  )
+    .use(cors({ credentials: true }))
+    .use(httpErrorHandler({ logger }));

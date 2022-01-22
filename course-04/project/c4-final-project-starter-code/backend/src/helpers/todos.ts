@@ -4,6 +4,7 @@ import { TodoItem, TodoItemKey } from '../models'
 import { CreateTodoRequest, UpdateTodoRequest } from '../requests'
 import { createLogger } from '../utils/logger'
 import { v4 as uuid } from 'uuid'
+import * as createHttpError from 'http-errors';
 
 const logger = createLogger('Todos');
 const { ATTACHMENT_S3_BUCKET, SIGNED_URL_EXPIRATION } = process.env;
@@ -14,7 +15,7 @@ export const getTodosForUser = async (userId: string, limit: number, lastKey: To
         return getAll(userId, limit, lastKey);    
     } catch(err) {
         logger.error(err.message);
-        throw err;
+        throw new createHttpError.InternalServerError(err.message)
     }
 }
 
@@ -32,7 +33,7 @@ export const createTodo = async (userId: string, todoRequest: CreateTodoRequest)
         return create(todoItem);
     } catch (err) {
         logger.error(err.message);
-        throw err;
+        throw new createHttpError.InternalServerError(err.message)
     }
 }
 
@@ -42,7 +43,7 @@ export const updateTodo = async (id: string, userId: string, todoRequest: Update
         return update(id, userId, todoRequest);
     } catch (err) {
         logger.error(err.message);
-        throw err;
+        throw new createHttpError.InternalServerError(err.message)
     }
 }
 
@@ -52,7 +53,7 @@ export const deleteTodo = async (id: string, userId: string): Promise<void> => {
         await remove(id, userId);
     } catch (err) {
         logger.error(err.message);
-        throw err;
+        throw new createHttpError.InternalServerError(err.message)
     }
 }
 
@@ -66,6 +67,6 @@ export const createAttachmentPresignedUrl = async (id: string, userId: string): 
         return getSignedAttachmentUrl(id, ATTACHMENT_S3_BUCKET, +SIGNED_URL_EXPIRATION);
     } catch (err) {
         logger.error(err.message);
-        throw err;
+        throw new createHttpError.InternalServerError(err.message)
     }
 }

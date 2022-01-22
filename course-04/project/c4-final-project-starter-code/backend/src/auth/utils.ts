@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as createHttpError from 'http-errors';
 import { decode, verify } from 'jsonwebtoken'
 import { createLogger } from '../utils/logger';
 import { Jwt } from './Jwt';
@@ -81,6 +82,6 @@ export const verifyToken = async (authHeader: string): Promise<JwtPayload> => {
         return verify(token, signingKey.publicKey, { algorithms: ['RS256'] }) as JwtPayload;
     } catch (err) {
         logger.error('Verify token failed: ', err.message);
-        throw err;
+        throw new createHttpError.Unauthorized(err.message);
     }
 }
