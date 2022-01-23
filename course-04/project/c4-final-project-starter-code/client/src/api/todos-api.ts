@@ -4,16 +4,20 @@ import { Todo } from '../types/Todo';
 import { CreateTodoRequest } from '../types/CreateTodoRequest';
 import { UpdateTodoRequest } from '../types/UpdateTodoRequest';
 
-export async function getTodos(idToken: string, order: string = 'asc'): Promise<Todo[]> {
+export async function getTodos(idToken: string, order: string = 'asc', nextKey: string | null = null): Promise<{items: Todo[], lastKey: string}> {
   const sort = 'dueDate';
-  const response = await Axios.get(`${apiEndpoint}/todos?sort=${sort}&order=${order}`, {
+  const limit = 5;
+  const response = await Axios.get(`${apiEndpoint}/todos?sort=${sort}&order=${order}&limit=${limit}&lastKey=${nextKey}`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${idToken}`
     },
   })
 
-  return response.data.items;
+  return {
+      items: response.data.items,
+      lastKey: response.data.lastKey
+  }
 }
 
 export async function createTodo(

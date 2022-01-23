@@ -24,21 +24,29 @@ interface TodosProps {
     history: History
 }
 
+interface Page {
+    current: string | null,
+    next: string | null
+}
+
 interface TodosState {
     order: string
     orderDesc: string
     todos: Todo[]
     newTodoName: string
-    loadingTodos: boolean
+    loadingTodos: boolean,
+    pageHistory: Page[]
 }
+
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
     state: TodosState = {
-        order: 'asc',
-        orderDesc: 'Sort Descending',
+        order: 'desc',
+        orderDesc: 'Sort Ascending',
         todos: [],
         newTodoName: '',
-        loadingTodos: true
+        loadingTodos: true,
+        pageHistory: []
     }
 
     handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,15 +102,51 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         }
     }
 
+    renderSortIcon = () => {
+        this.setState({
+            orderDesc: this.state.order === 'asc' ? 'Sort Descending' : 'Sort Ascending'
+        })
+        return <Icon link name={this.state.order === 'asc' ? 'angle down' : 'angle up'} />
+    }
+
+    async componentDidMount() {
+        try {
+            const response = await getTodos(this.props.auth.getIdToken(), this.state.order, null);
+            this.setState({
+                todos: response.items,
+                loadingTodos: false,
+                pageHistory: [
+                    {
+                        current: null,
+                        next: response.lastKey   
+                    }
+                ]
+            })
+        } catch (e) {
+            if (e instanceof Error) {
+                alert(`Failed to fetch todos: ${e.message}`)
+                return;
+            }
+            alert('Unknown error');
+        }
+    }
+
     updateSortOrder = async () => {
         this.setState({ loadingTodos: true });
         try {
             const newOrder = this.state.order === 'asc' ? 'desc' : 'asc';
-            const todos = await getTodos(this.props.auth.getIdToken(), newOrder);
-
+            const page = this.state.pageHistory[this.state.pageHistory.length -1];
+            const response = await getTodos(this.props.auth.getIdToken(), newOrder, null);
+            
             this.setState({
                 order: newOrder,
-                todos,
+                todos: response.items,
+                pageHistory: [
+                    {
+                        current: null,
+                        next: response.lastKey
+                    }
+                ]
             });
         } catch (e) {
             if (e instanceof Error) {
@@ -116,19 +160,27 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
     }
 
-    renderSortIcon = () => {
-        this.setState({
-            orderDesc: this.state.order === 'asc' ? 'Sort Descending' : 'Sort Ascending'
-        })
-        return <Icon link name={this.state.order === 'asc' ? 'angle down' : 'angle up'} />
-    }
-
-    async componentDidMount() {
+    async pageTodos(forward = false) {
+        this.setState({ loadingTodos: true });
         try {
-            const todos = await getTodos(this.props.auth.getIdToken())
+            const currentPageHistory = [...this.state.pageHistory];
+            
+            if (!forward) {
+                currentPageHistory.pop();
+            }
+
+            const page = currentPageHistory[currentPageHistory.length -1];
+            const newCurrent = forward ? page.next : page.current;
+            const response = await getTodos(this.props.auth.getIdToken(), this.state.order, newCurrent);
+            
+            if (forward) {
+                currentPageHistory.push({ current: newCurrent, next: response.lastKey });
+            }
+
             this.setState({
-                todos,
-                loadingTodos: false
+                todos: response.items,
+                loadingTodos: false,
+                pageHistory: [...currentPageHistory]
             })
         } catch (e) {
             if (e instanceof Error) {
@@ -192,26 +244,44 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         )
     }
 
+    renderGridHeader() {
+        return (
+            <Grid.Row>
+                <Grid.Column width={1}></Grid.Column>
+                <Grid.Column width={10}>
+                    <strong>Name</strong>
+                </Grid.Column>
+                <Grid.Column width={3} onClick={() => this.updateSortOrder()}>
+                    <strong>Due Date</strong>
+                    <Popup trigger={this.renderSortIcon()}>
+                        {this.state.orderDesc}
+                    </Popup>
+                </Grid.Column>
+                <Grid.Column width={1}></Grid.Column>
+                <Grid.Column width={1}></Grid.Column>
+                <Grid.Column width={16}>
+                    <Divider />
+                </Grid.Column>
+            </Grid.Row>)
+    }
+
+    renderGridFooter() {
+        return (
+            <Grid.Row>
+                <Grid.Column width={4}></Grid.Column>
+                <Grid.Column width={8} verticalAlign="middle" textAlign="center">
+                    { this.state.pageHistory.length > 1 && <Button color="blue" onClick={() => this.pageTodos(false)}>Previous</Button> }
+                    { !!this.state.pageHistory[this.state.pageHistory.length -1]?.next && <Button color="blue" onClick={() => this.pageTodos(true)}>Next</Button> }
+                </Grid.Column>
+                <Grid.Column width={4}></Grid.Column>
+            </Grid.Row>
+        );
+    }
+
     renderTodosList() {
         return (
             <Grid padded>
-                <Grid.Row>
-                    <Grid.Column width={1}></Grid.Column>
-                    <Grid.Column width={10}>
-                        <strong>Name</strong>
-                    </Grid.Column>
-                    <Grid.Column width={3} onClick={() => this.updateSortOrder()}>
-                        <strong>Due Date</strong>
-                        <Popup trigger={this.renderSortIcon()}>
-                            { this.state.orderDesc }
-                        </Popup>
-                    </Grid.Column>
-                    <Grid.Column width={1}></Grid.Column>
-                    <Grid.Column width={1}></Grid.Column>
-                    <Grid.Column width={16}>
-                        <Divider />
-                    </Grid.Column>
-                </Grid.Row>
+                {this.renderGridHeader()}
                 {this.state.todos.map((todo, pos) => {
                     return (
                         <Grid.Row key={todo.todoId}>
@@ -254,6 +324,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                         </Grid.Row>
                     )
                 })}
+                {this.renderGridFooter()}
             </Grid>
         )
     }

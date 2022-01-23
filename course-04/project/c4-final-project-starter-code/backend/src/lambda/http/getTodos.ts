@@ -11,7 +11,7 @@ import { TodoItemKey } from '../../models'
 
 const logger = createLogger('getTodos.handler');
 
-const encodeLastKey = (key: TodoItemKey): string => encodeURIComponent(JSON.stringify(key));
+const encodeLastKey = (key: TodoItemKey): string => !!key ? encodeURIComponent(JSON.stringify(key)) : null
 const decodeLastKey = (lastKey: string): TodoItemKey => {
     if (lastKey) {
         return JSON.parse(lastKey);
