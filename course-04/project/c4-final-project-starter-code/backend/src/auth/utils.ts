@@ -11,7 +11,7 @@ const certToPEM = (cert) =>
     `-----BEGIN CERTIFICATE-----\n${cert.match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----\n`;
 
 async function getJwksSigningKey(kid: string) {
-    const jwksUrl = ''
+    const jwksUrl = 'https://stumpfaeries.auth0.com/.well-known/jwks.json'
     try {
         const response = await axios.get(jwksUrl, {});
         const { keys } = response.data;
