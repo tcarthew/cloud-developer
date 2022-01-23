@@ -59,17 +59,25 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
     onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
         try {
-            const dueDate = this.calculateDueDate()
-            const newTodo = await createTodo(this.props.auth.getIdToken(), {
-                name: this.state.newTodoName,
-                dueDate
-            })
+            if (!this.state.newTodoName.trim()) {
+                throw new Error('Invalid name');
+            }
+            const todoItem = {
+                name: this.state.newTodoName.trim(),
+                dueDate: this.calculateDueDate()
+            };
+
+            const newTodo = await createTodo(this.props.auth.getIdToken(), todoItem);
             this.setState({
                 todos: [...this.state.todos, newTodo],
                 newTodoName: ''
             })
-        } catch {
-            alert('Todo creation failed')
+        } catch(err) {
+            if (err instanceof Error) {
+                alert(`Failed to create todo: ${err.message}`)
+                return;
+            }
+            alert('Unknown error');
         }
     }
 
@@ -135,7 +143,6 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         this.setState({ loadingTodos: true });
         try {
             const newOrder = this.state.order === 'asc' ? 'desc' : 'asc';
-            const page = this.state.pageHistory[this.state.pageHistory.length -1];
             const response = await getTodos(this.props.auth.getIdToken(), newOrder, null);
             
             this.setState({
