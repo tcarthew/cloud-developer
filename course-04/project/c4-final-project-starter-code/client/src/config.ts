@@ -4,5 +4,5 @@ export const apiEndpoint = `https://api.carthewt.net`
 export const authConfig = {
   domain: 'stumpfaeries.auth0.com',            
   clientId: '1roQEGG2ERKCmoRHsMBgeSKHvdK0TRqQ',
-  callbackUrl: 'http://localhost:3000/callback'
+  callbackUrl: 'http://client.carthewt.net/callback'
 }
