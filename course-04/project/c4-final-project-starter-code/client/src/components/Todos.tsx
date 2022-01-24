@@ -59,9 +59,6 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
     onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
         try {
-            if (!this.state.newTodoName.trim()) {
-                throw new Error('Invalid name');
-            }
             const todoItem = {
                 name: this.state.newTodoName.trim(),
                 dueDate: this.calculateDueDate()
